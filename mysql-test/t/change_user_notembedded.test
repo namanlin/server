@@ -21,4 +21,4 @@ change_user foo,bar;
 change_user;
 disconnect test;
 connection default;
-
+select "ok"; # mysqltest doesn't like tests without a single sql statement :)
