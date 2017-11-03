@@ -2437,7 +2437,7 @@ int main(int argc, char** argv)
 
   if (!argc || opt_version)
   {
-    if (!argc)
+    if (!opt_version)
       usage();
     cleanup();
     free_defaults(defaults_argv);
