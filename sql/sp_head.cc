@@ -1853,7 +1853,26 @@ sp_head::execute_function(THD *thd, Item **argp, uint argcount,
   */
   thd->set_n_backup_active_arena(&call_arena, &backup_arena);
 
+  /*
+     Normally the counter is not reset between parsing and first execution,
+     but it is possible in case of error to have parsing on one CALL and
+     first execution (where VIEW will be parsed and added). So we store the
+     counter after parsing and restore it before execution just to avoid
+     repeating SELECT numbers.
+   */
+  thd->select_number= m_select_number;
+
   err_status= execute(thd, TRUE);
+
+  /*
+     This execution of the SP was aborted with an error (e.g. "Table not
+     found").  However it might still have consumed some numbers from the
+     thd->select_number counter.  The next sp->exec() call must not use the
+     consumed numbers, so we remember the first free number (We know that
+     nobody will use it as this execution has stopped with an error).
+   */
+  if (err_status)
+    set_select_number(thd->select_number);
 
   thd->restore_active_arena(&call_arena, &backup_arena);
 
